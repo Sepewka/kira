@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Кира — график лечения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#F4C6D2;
+    --pink-deep:#E893A8;
+    --lavender:#E3D9F5;
+    --lavender-deep:#B79FE0;
+    --mint:#CFEBD8;
+    --mint-deep:#7FBE97;
+    --cream:#FFFBF6;
+    --ink:#5A4A52;
+    --ink-soft:#9A8A90;
+    --card:#FFFFFF;
+    --line:#F2E6EA;
+    --tip-bg:#FFF3F6;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --pink:#5C3140;
+      --pink-deep:#E893A8;
+      --lavender:#3A2E52;
+      --lavender-deep:#B79FE0;
+      --mint:#1F3B2C;
+      --mint-deep:#7FBE97;
+      --cream:#221A1F;
+      --ink:#F1E4E9;
+      --ink-soft:#B9A6AF;
+      --card:#2C222A;
+      --line:#3E323A;
+      --tip-bg:#2C2229;
+    }
+    .tag.must{background:var(--pink); color:#F4B9C8;}
+    .tag.opt{background:var(--lavender); color:#D6C4F5;}
+    .w-item{color:#AEE3C0;}
+    .w-item b{color:#DFF7E8;}
+    .waterbox h3{color:#AEE3C0;}
+    .tailbox p, .tailbox h3{color:#D6C4F5;}
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Nunito',sans-serif;
+    padding-bottom:50px;
+  }
+  header{
+    padding:26px 20px 22px;
+    background:linear-gradient(135deg,var(--pink) 0%, var(--lavender) 100%);
+    border-radius:0 0 32px 32px;
+    text-align:center;
+    position:relative;
+  }
+  .bird{font-size:34px; margin-bottom:4px;}
+  h1{
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:24px;
+    margin:0 0 4px;
+    color:#5A4A52;
+  }
+  @media (prefers-color-scheme: dark){
+    h1{color:#221A1F;}
+  }
+  .sub{
+    font-size:13.5px;
+    color:#7A6670;
+    margin:0;
+    font-weight:600;
+  }
+
+  .daywrap{
+    padding:16px 16px 0;
+  }
+  .daylabel{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    padding-left:4px;
+  }
+  .daypicker{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding-bottom:10px;
+    scrollbar-width:none;
+  }
+  .daypicker::-webkit-scrollbar{display:none;}
+  .day-btn{
+    flex:0 0 auto;
+    min-width:40px;height:40px;
+    border-radius:14px;
+    border:none;
+    background:var(--card);
+    color:var(--ink);
+    font-family:'Nunito',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid var(--line);
+    position:relative;
+  }
+  .day-btn.active{
+    background:var(--pink-deep);
+    color:white;
+    border-color:var(--pink-deep);
+  }
+  .day-btn.tail{
+    background:var(--mint);
+    border-color:var(--mint-deep);
+    color:#3D6B4C;
+  }
+  @media (prefers-color-scheme: dark){
+    .day-btn.tail{color:#AEE3C0;}
+  }
+  .day-btn.today::after{
+    content:"";
+    position:absolute;
+    top:-3px; right:-3px;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--mint-deep);
+    border:2px solid var(--cream);
+  }
+
+  .stagecard{
+    margin:4px 20px 16px;
+    background:var(--card);
+    border-radius:18px;
+    padding:14px 16px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+    border:1.5px dashed var(--lavender-deep);
+  }
+  .stagecard b{color:var(--pink-deep);}
+
+  .tabs{
+    display:flex;
+    margin:0 20px 16px;
+    background:var(--card);
+    border-radius:18px;
+    padding:5px;
+    border:1.5px solid var(--line);
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:12px 0;
+    border-radius:14px;
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--ink-soft);
+  }
+  .tab.active{
+    background:var(--lavender-deep);
+    color:white;
+  }
+
+  section.panel{display:none; padding:0 20px;}
+  section.panel.active{display:block;}
+
+  .deadline{
+    font-family:'Quicksand',sans-serif;
+    font-size:15px;
+    color:var(--pink-deep);
+    font-weight:700;
+    margin:0 0 12px;
+    text-align:center;
+  }
+
+  .item{
+    background:var(--card);
+    border-radius:20px;
+    padding:16px 18px;
+    border:2px solid var(--line);
+    margin-bottom:12px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .item.dimmed{opacity:0.35;}
+  .item.dimmed .name{text-decoration:line-through;}
+  .item.checked{border-color:var(--mint-deep);}
+
+  .check-wrap{padding-top:2px;}
+  input[type=checkbox]{
+    width:26px;height:26px;
+    accent-color:var(--mint-deep);
+    border-radius:8px;
+  }
+
+  .item-body{flex:1;}
+  .row-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .time{
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:17px;
+    color:var(--ink);
+  }
+  .tag{
+    font-size:10.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:3px 9px;
+    border-radius:20px;
+  }
+  .tag.must{background:var(--pink); color:#A34A63;}
+  .tag.opt{background:var(--lavender); color:#6A4FA0;}
+  .name{
+    font-weight:800;
+    font-size:16px;
+    margin:2px 0 3px;
+    color:var(--ink);
+  }
+  .dose{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    font-weight:600;
+    line-height:1.4;
+  }
+
+  .waterbox{
+    margin:20px 20px 12px;
+    background:var(--mint);
+    border-radius:22px;
+    padding:18px 20px;
+  }
+  .waterbox h3{
+    font-family:'Quicksand',sans-serif;
+    margin:0 0 12px;
+    font-size:16px;
+    color:#3D6B4C;
+  }
+  .w-item{
+    font-size:13.5px;
+    margin-bottom:10px;
+    line-height:1.45;
+    color:#3D6B4C;
+    font-weight:600;
+  }
+  .w-item b{color:#255436;}
+
+  .tailbox{
+    margin:0 20px 12px;
+    background:var(--lavender);
+    border-radius:22px;
+    padding:18px 20px;
+  }
+  .tailbox h3{
+    font-family:'Quicksand',sans-serif;
+    margin:0 0 8px;
+    font-size:16px;
+    color:#5A3E9C;
+  }
+  .tailbox p{
+    font-size:13.5px;
+    color:#5A3E9C;
+    font-weight:600;
+    margin:0;
+    line-height:1.5;
+  }
+
+  .tip{
+    margin:14px 20px 4px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    font-weight:600;
+    background:var(--tip-bg);
+    padding:12px 16px;
+    border-radius:16px;
+  }
+
+  .legend{
+    display:flex; gap:16px;
+    margin:16px 20px 0;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:700;
+  }
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .dot.must{background:var(--pink-deep);}
+  .dot.opt{background:var(--lavender-deep);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bird">🦜💗</div>
+  <h1>График лечения Киры</h1>
+  <p class="sub">21 день · пауза 15–20 мин между препаратами</p>
+</header>
+
+<div class="daywrap">
+  <div class="daylabel">Выберите день лечения · точка — сегодня</div>
+  <div class="daypicker" id="daypicker"></div>
+</div>
+
+<div class="stagecard" id="stageNote"></div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="morning">☀️ Утро</div>
+  <div class="tab" data-panel="evening">🌙 Вечер</div>
+</div>
+
+<section class="panel active" id="morning">
+  <p class="deadline">Закончить до 8:00 — начинайте в 7:00</p>
+  <div id="morning-list"></div>
+</section>
+
+<section class="panel" id="evening">
+  <p class="deadline">Начинать не раньше 21:00</p>
+  <div id="evening-list"></div>
+</section>
+
+<div class="legend">
+  <span><span class="dot must"></span> обязательно</span>
+  <span><span class="dot opt"></span> по возможности</span>
+</div>
+
+<div class="waterbox">
+  <h3>💧 В поилку / корм — раз в день, время не важно</h3>
+  <div class="w-item"><b>Канефрон</b> — 5–6 капель на 50 мл воды в поилку. Дни 1–14.</div>
+  <div class="w-item"><b>Энтерол + бифидумбактерин</b> — ¼ капсулы Энтерола + щепотка бифидумбактерина на корм и в поилку. Дни 1–21.</div>
+</div>
+
+<div class="tailbox" id="tailbox" style="display:none;">
+  <h3>🌿 После дня 20</h3>
+  <p>Пумпан в клюв больше не нужен — переходит в поилку: 5–6 капель на 50 мл воды, ещё 1–2 месяца.</p>
+</div>
+
+<p class="tip">💡 Пумпан можно развести 1:10 с водой заранее на пару дней и хранить в холодильнике — но перед тем как давать, дайте согреться до комнатной температуры (10–15 мин на столе). Холодным не давать.</p>
+<p class="tip">✅ Галочки теперь сохраняются — можно закрыть телефон и вернуться позже, отметки не потеряются.</p>
+<p class="tip">🐦 Если после начала приёма Мелоксивета заметите ухудшение — сильную вялость, отказ от еды, изменение помёта — звоните врачу сразу, не дожидаясь планового визита.</p>
+
+<script>
+const DAYS = 21;
+
+const morningItems = [
+  {name:"Овариовит", dose:"0,2 мл в клюв", time:"7:00", must:true, active:(d)=>d<=14},
+  {name:"Пумпан", dose:"1 капля разведённого (1:10 с водой) в клюв", time:"7:20", must:true, active:(d)=>d<=10},
+  {name:"Мелоксивет", dose:"1 капля (0,05 мл) в клюв", time:"7:40", must:true, active:(d)=>d<=7},
+  {name:"Панангин", dose:"0,1 мл разведённого (0,1 мл + 0,2 мл воды) в клюв", time:"8:00", must:false, active:(d)=>d<=14},
+  {name:"Гепатоджект", dose:"0,2 мл в клюв", time:"8:00", must:false, active:(d)=>d<=14},
+  {name:"Кальция глюконат", dose:"3–4 капли (0,15 мл) в клюв, или Кальций Д3 ¼ капсулы на корм", time:"8:00", must:false, active:(d)=>d<=14},
+];
+
+const eveningItems = [
+  {name:"Овариовит", dose:"0,2 мл в клюв", time:"21:00", must:true, active:(d)=>d<=14},
+  {name:"Мелоксивет", dose:"1 капля (0,05 мл) в клюв", time:"21:20", must:true, active:(d)=>d<=21},
+  {name:"Пумпан", dose:"1 капля разведённого (1:10 с водой) в клюв", time:"21:40", must:true, active:(d)=>d<=20},
+  {name:"Панангин", dose:"0,1 мл разведённого в клюв", time:"22:00", must:false, active:(d)=>d<=14},
+  {name:"Гепатоджект", dose:"0,2 мл в клюв", time:"22:00", must:false, active:(d)=>d<=14},
+  {name:"Кальция глюконат", dose:"3–4 капли (0,15 мл) в клюв", time:"22:00", must:false, active:(d)=>d<=14},
+];
+
+let currentDay = 1;
+let todayDay = 1; // день, соответствующий реальной сегодняшней дате
+
+// ---- Постоянное хранилище (аналог localStorage для артефактов) ----
+async function storageGet(key){
+  try{
+    const res = await window.storage.get(key, false);
+    return res ? res.value : null;
+  }catch(e){
+    return null;
+  }
+}
+async function storageSet(key, value){
+  try{
+    await window.storage.set(key, value, false);
+  }catch(e){
+    // если хранилище недоступно — просто продолжаем без сохранения
+  }
+}
+
+function todayISO(){
+  const t = new Date();
+  return t.getFullYear() + "-" + String(t.getMonth()+1).padStart(2,'0') + "-" + String(t.getDate()).padStart(2,'0');
+}
+
+async function initStartDate(){
+  let start = await storageGet('start-date');
+  if(!start){
+    start = todayISO();
+    await storageSet('start-date', start);
+  }
+  const startDate = new Date(start + "T00:00:00");
+  const now = new Date(todayISO() + "T00:00:00");
+  const diffDays = Math.floor((now - startDate) / 86400000) + 1;
+  todayDay = Math.min(DAYS, Math.max(1, diffDays));
+  currentDay = todayDay;
+}
+
+function checkKey(day, panel, idx){
+  return "check-" + day + "-" + panel + "-" + idx;
+}
+
+async function getChecked(day, panel, idx){
+  const v = await storageGet(checkKey(day, panel, idx));
+  return v === 'true';
+}
+
+function stageText(d){
+  if(d<=7) return "Дни 1–7 · <b>Мелоксивет</b> утром и вечером, <b>Пумпан</b> в клюв 2 раза в день";
+  if(d<=10) return "Дни 8–10 · Мелоксивет только вечером, Пумпан ещё 2 раза в день";
+  if(d<=14) return "Дни 11–14 · Мелоксивет и Пумпан — только вечером";
+  if(d<=20) return "Дни 15–20 · только Мелоксивет и Пумпан вечером (остальное закончилось)";
+  return "День 21 · последний день Мелоксивета. Пумпан уходит в поилку";
+}
+
+function renderDayPicker(){
+  const wrap = document.getElementById('daypicker');
+  wrap.innerHTML = '';
+  for(let d=1; d<=DAYS; d++){
+    const b = document.createElement('button');
+    let cls = 'day-btn';
+    if(d===currentDay) cls += ' active';
+    else if(d>14) cls += ' tail';
+    if(d===todayDay) cls += ' today';
+    b.className = cls;
+    b.textContent = d;
+    b.onclick = () => { currentDay = d; renderAll(); };
+    wrap.appendChild(b);
+  }
+}
+
+async function renderList(containerId, items, panel){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  for(let idx=0; idx<items.length; idx++){
+    const it = items[idx];
+    const isActive = it.active(currentDay);
+    const isChecked = isActive ? await getChecked(currentDay, panel, idx) : false;
+    const div = document.createElement('div');
+    div.className = 'item' + (isActive ? '' : ' dimmed') + (isChecked ? ' checked' : '');
+    div.innerHTML = `
+      <div class="check-wrap"><input type="checkbox" ${isActive ? '' : 'disabled'} ${isChecked ? 'checked' : ''}></div>
+      <div class="item-body">
+        <div class="row-top">
+          <span class="time">${it.time}</span>
+          <span class="tag ${it.must ? 'must' : 'opt'}">${it.must ? 'обязательно' : 'опора'}</span>
+        </div>
+        <div class="name">${it.name}${isActive ? '' : ' — сегодня не нужен'}</div>
+        <div class="dose">${it.dose}</div>
+      </div>
+    `;
+    const cb = div.querySelector('input[type=checkbox]');
+    if(isActive){
+      cb.addEventListener('change', async () => {
+        await storageSet(checkKey(currentDay, panel, idx), cb.checked ? 'true' : 'false');
+        div.classList.toggle('checked', cb.checked);
+      });
+    }
+    el.appendChild(div);
+  }
+}
+
+async function renderAll(){
+  renderDayPicker();
+  document.getElementById('stageNote').innerHTML = "День " + currentDay + " · " + stageText(currentDay);
+  await renderList('morning-list', morningItems, 'morning');
+  await renderList('evening-list', eveningItems, 'evening');
+  document.getElementById('tailbox').style.display = currentDay > 20 ? 'block' : 'none';
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+  });
+});
+
+(async () => {
+  await initStartDate();
+  await renderAll();
+})();
+</script>
+
+</body>
+</html>
