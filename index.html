@@ -370,20 +370,23 @@ const eveningItems = [
 let currentDay = 1;
 let todayDay = 1; // день, соответствующий реальной сегодняшней дате
 
-// ---- Постоянное хранилище (аналог localStorage для артефактов) ----
-async function storageGet(key){
+// ---- Хранилище: localStorage (страница хостится на собственном сайте,
+// поэтому обычный localStorage браузера работает штатно) ----
+const STORAGE_PREFIX = 'kira-schedule-';
+
+function storageGet(key){
   try{
-    const res = await window.storage.get(key, false);
-    return res ? res.value : null;
+    return localStorage.getItem(STORAGE_PREFIX + key);
   }catch(e){
+    // приватный режим браузера / хранилище недоступно
     return null;
   }
 }
-async function storageSet(key, value){
+function storageSet(key, value){
   try{
-    await window.storage.set(key, value, false);
+    localStorage.setItem(STORAGE_PREFIX + key, value);
   }catch(e){
-    // если хранилище недоступно — просто продолжаем без сохранения
+    // если сохранить не удалось — страница всё равно продолжит работать
   }
 }
 
@@ -392,11 +395,11 @@ function todayISO(){
   return t.getFullYear() + "-" + String(t.getMonth()+1).padStart(2,'0') + "-" + String(t.getDate()).padStart(2,'0');
 }
 
-async function initStartDate(){
-  let start = await storageGet('start-date');
+function initStartDate(){
+  let start = storageGet('start-date');
   if(!start){
     start = todayISO();
-    await storageSet('start-date', start);
+    storageSet('start-date', start);
   }
   const startDate = new Date(start + "T00:00:00");
   const now = new Date(todayISO() + "T00:00:00");
@@ -409,9 +412,8 @@ function checkKey(day, panel, idx){
   return "check-" + day + "-" + panel + "-" + idx;
 }
 
-async function getChecked(day, panel, idx){
-  const v = await storageGet(checkKey(day, panel, idx));
-  return v === 'true';
+function getChecked(day, panel, idx){
+  return storageGet(checkKey(day, panel, idx)) === 'true';
 }
 
 function stageText(d){
@@ -438,13 +440,13 @@ function renderDayPicker(){
   }
 }
 
-async function renderList(containerId, items, panel){
+function renderList(containerId, items, panel){
   const el = document.getElementById(containerId);
   el.innerHTML = '';
   for(let idx=0; idx<items.length; idx++){
     const it = items[idx];
     const isActive = it.active(currentDay);
-    const isChecked = isActive ? await getChecked(currentDay, panel, idx) : false;
+    const isChecked = isActive ? getChecked(currentDay, panel, idx) : false;
     const div = document.createElement('div');
     div.className = 'item' + (isActive ? '' : ' dimmed') + (isChecked ? ' checked' : '');
     div.innerHTML = `
@@ -460,8 +462,8 @@ async function renderList(containerId, items, panel){
     `;
     const cb = div.querySelector('input[type=checkbox]');
     if(isActive){
-      cb.addEventListener('change', async () => {
-        await storageSet(checkKey(currentDay, panel, idx), cb.checked ? 'true' : 'false');
+      cb.addEventListener('change', () => {
+        storageSet(checkKey(currentDay, panel, idx), cb.checked ? 'true' : 'false');
         div.classList.toggle('checked', cb.checked);
       });
     }
@@ -469,11 +471,11 @@ async function renderList(containerId, items, panel){
   }
 }
 
-async function renderAll(){
+function renderAll(){
   renderDayPicker();
   document.getElementById('stageNote').innerHTML = "День " + currentDay + " · " + stageText(currentDay);
-  await renderList('morning-list', morningItems, 'morning');
-  await renderList('evening-list', eveningItems, 'evening');
+  renderList('morning-list', morningItems, 'morning');
+  renderList('evening-list', eveningItems, 'evening');
   document.getElementById('tailbox').style.display = currentDay > 20 ? 'block' : 'none';
 }
 
@@ -486,10 +488,8 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-(async () => {
-  await initStartDate();
-  await renderAll();
-})();
+initStartDate();
+renderAll();
 </script>
 
 </body>
